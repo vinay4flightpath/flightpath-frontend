@@ -10,16 +10,18 @@ void main() {
   runApp(const ProviderScope(child: FlightpathApp()));
 }
 
-class FlightpathApp extends StatelessWidget {
+class FlightpathApp extends ConsumerWidget {
   const FlightpathApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+
     return MaterialApp.router(
       title: 'Flightpath Aviation Training System',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }

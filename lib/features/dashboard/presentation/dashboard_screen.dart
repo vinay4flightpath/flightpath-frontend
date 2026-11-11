@@ -1,12 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../tenants/state/tenants_provider.dart';
+import '../../people/state/people_provider.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(tenantsProvider.notifier).fetchTenants();
+      ref.read(peopleProvider.notifier).fetchPeople();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final tenantsState = ref.watch(tenantsProvider);
+    final peopleState = ref.watch(peopleProvider);
+
+    final totalTenants = tenantsState.tenants.length;
+    final totalPeople = peopleState.total > 0 ? peopleState.total : peopleState.people.length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -37,10 +60,20 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('New Tenant'),
-                onPressed: () => context.go('/tenants'),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.person_add, size: 18),
+                    label: const Text('Add Person'),
+                    onPressed: () => context.go('/admin/people'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add_business, size: 18),
+                    label: const Text('New Tenant'),
+                    onPressed: () => context.go('/admin/tenants'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -51,7 +84,7 @@ class DashboardScreen extends StatelessWidget {
             children: [
               _buildMetricCard(
                 title: 'Active Tenants',
-                value: '0',
+                value: totalTenants.toString(),
                 subtitle: 'Configured training operators',
                 icon: Icons.business,
                 color: AppTheme.primaryNavy,
@@ -59,16 +92,16 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(width: 20),
               _buildMetricCard(
                 title: 'Total People',
-                value: '1',
-                subtitle: 'SuperAdmin seeded',
+                value: totalPeople.toString(),
+                subtitle: 'Unified identities in platform',
                 icon: Icons.people_outline,
                 color: AppTheme.accentCyan,
               ),
               const SizedBox(width: 20),
               _buildMetricCard(
-                title: 'System Architecture',
-                value: 'Phase 0 Ready',
-                subtitle: 'NestJS + PostgreSQL + Flutter Web',
+                title: 'System Status',
+                value: 'Operational',
+                subtitle: 'PostgreSQL + NestJS + Flutter Web',
                 icon: Icons.check_circle_outline,
                 color: AppTheme.success,
               ),
@@ -76,7 +109,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
-          // Quick Workflow Cards (Step 1-4 Preview)
+          // Quick Workflow Cards (7-Step Flow Guidance)
           Card(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -84,7 +117,7 @@ class DashboardScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Stage 1 Foundation: Next Steps (Phase 1 Execution)',
+                    'Initial System Onboarding Workflow (Phase 1)',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -93,7 +126,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'The foundation architecture is now initialized. In Phase 1, we will implement the 7-step multi-tenant onboarding workflow:',
+                    'Follow these 7 steps to configure your organisations, people, and contextual roles:',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppTheme.textSecondary,
@@ -103,37 +136,37 @@ class DashboardScreen extends StatelessWidget {
                   _buildStepItem(
                     stepNumber: '1',
                     title: 'SuperAdmin Login',
-                    description: 'Global administrator authentication using JWT + Passport.',
+                    description: 'Global administrator logged in with full system management permissions.',
                     isDone: true,
                   ),
                   _buildStepItem(
                     stepNumber: '2',
                     title: 'Create Persons',
-                    description: 'Add global person records with unique Flightpath IDs without initial roles.',
-                    isDone: false,
+                    description: 'Add global person records with unique Flightpath IDs without initial roles in People Directory.',
+                    isDone: totalPeople > 1,
                   ),
                   _buildStepItem(
                     stepNumber: '3',
                     title: 'Create Tenants',
-                    description: 'Provision training academies, airlines, or operators.',
-                    isDone: false,
+                    description: 'Provision training academies, flight schools, or airlines in Tenants Directory.',
+                    isDone: totalTenants > 0,
                   ),
                   _buildStepItem(
                     stepNumber: '4',
-                    title: 'Add Tenant Members (Search or On-the-fly)',
-                    description: 'Assign persons to tenants with Admin, Instructor, or Student roles.',
+                    title: 'Add Tenant Members (Search or On-the-Fly)',
+                    description: 'Enter a tenant and assign existing persons or create new persons on-the-fly with Admin, Instructor, or Student roles.',
                     isDone: false,
                   ),
                   _buildStepItem(
                     stepNumber: '5',
-                    title: 'Tenant Member Login & Tenant Selection',
-                    description: 'Role-based redirection to tenant selection or direct workspace.',
+                    title: 'Person Login & Multi-Tenant Switcher',
+                    description: 'When users log in, they see their accessible tenants or are redirected to their active workspace.',
                     isDone: false,
                   ),
                   _buildStepItem(
                     stepNumber: '6 & 7',
                     title: 'Tenant Admin Workspace',
-                    description: 'Tenant Admins manage instructors and students within their tenant.',
+                    description: 'Tenant Admins manage instructors and students strictly within their tenant boundaries.',
                     isDone: false,
                   ),
                 ],
